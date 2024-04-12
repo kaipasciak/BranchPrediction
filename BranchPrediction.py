@@ -29,12 +29,24 @@ def prompt():
     # Ask for branch-prediction buffer size
     bufferSize = int(input("Enter the branch-prediction buffer size in bits: "))
 
-    # Make buffer size a multiple of number of bits in counter
-    bufferSize = (bufferSize // counterBits) * counterBits
+    # Represent buffer table size as number of counters rather than number of bits
+    bufferSize = int(bufferSize // counterBits)
 
 
 def main():
     print("Branch Prediction Simulator")
     prompt()
+
+    # Create BHT
+    BHT = []
+    for i in range(bufferSize):
+        BHT[i] = 0
+
+    # Open file to simulate running program
+    with open(filename, "r") as file:
+        for line in file:
+            # Read address, update BHT based on branch taken value
+            pass
+
 
 main()
