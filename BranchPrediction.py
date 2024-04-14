@@ -3,6 +3,9 @@
 # Programming Assignment #4
 # Author: Kai Pasciak
 
+# Import argparse module to enable command line flags
+import argparse
+
 # Global variables and arrays to be set later
 MIN_COUNTER = 0
 MAX_COUNTER = 0
@@ -12,13 +15,30 @@ bufferSize = 0
 addresses = []
 counters = []
 
-def prompt():
-    # Ask for desired input file
-    filename = input("Enter the file name to test: ")
+
+def arguments():
+    # Create instance of argparse
+    parser = argparse.ArgumentParser(
+        prog='BranchPrediction',
+        description='Read results of branch instructions and whether they were taken to simulate branch prediction',
+        epilog='')
+
+    # Add flags
+    parser.add_argument('-f', '--filenameFlag')
+    parser.add_argument('-b', '--counterBitsFlag')
+    parser.add_argument('-s', '--bufferSizeFlag')
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Modify variables based on flags
+    filename = str(args.filenameFlag)
 
     # Ask for and validate number of bits per counter
-    while (counterBits < 0 and counterBits > 3):
+    counterBits = int(args.counterBitsFlag)
+    if counterBits < 0 and counterBits > 3:
         counterBits = int(input("Enter the number of bits to use: "))
+
     if counterBits == 1:
         MAX_COUNTER = 1
     if counterBits == 2:
@@ -27,20 +47,26 @@ def prompt():
         MAX_COUNTER = 7
 
     # Ask for branch-prediction buffer size
-    bufferSize = int(input("Enter the branch-prediction buffer size in bits: "))
+    bufferSize = int(args.bufferSizeFlag)
 
     # Represent buffer table size as number of counters rather than number of bits
     bufferSize = int(bufferSize // counterBits)
 
+    return [filename, counterBits, bufferSize]
+
 
 def main():
     print("Branch Prediction Simulator")
-    prompt()
+    flags = arguments()
+    filename = flags[0]
+    counterBits = flags[1]
+    bufferSize = flags[2]
 
-    # Create BHT
+    # Create BHT, initialize all values to 0
     BHT = []
     for i in range(bufferSize):
-        BHT[i] = 0
+        BHT.append(0)
+
 
     # Open file to simulate running program
     with open(filename, "r") as file:
