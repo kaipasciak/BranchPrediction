@@ -40,13 +40,6 @@ def arguments():
     if counterBits < 0 and counterBits > 3:
         counterBits = int(input("Enter the number of bits to use: "))
 
-    if counterBits == 1:
-        MAX_COUNTER = 1
-    if counterBits == 2:
-        MAX_COUNTER = 3
-    if counterBits == 3:
-        MAX_COUNTER = 7
-
     # Ask for branch-prediction buffer size
     bufferSize = int(args.bufferSizeFlag)
 
@@ -63,16 +56,34 @@ def main():
     counterBits = flags[1]
     bufferSize = flags[2]
 
+    if counterBits == 1:
+        MAX_COUNTER = 1
+    if counterBits == 2:
+        MAX_COUNTER = 3
+    if counterBits == 3:
+        MAX_COUNTER = 7
+
     # Create BHT, initialize all values to 0
     BHT = []
     for i in range(bufferSize):
         BHT.append(0)
 
-
     # Open file to simulate running program
     with open(filename, "r") as file:
         for line in file:
             # Read address, update BHT based on branch taken value
+            parts = line.split()
+            hexAddress = str(parts[0])
+            branchTaken = int(parts[1])
+
+            # Convert hex to binary
+            binAddress = bin(int(hexAddress, 16)).zfill(48) # For address size of 48 bits
+
+            # Convert bin to decimal
+            address = int(binAddress, 2)
+
+
+
             pass
 
 
