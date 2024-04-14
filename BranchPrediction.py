@@ -2,6 +2,7 @@
 # CS 3220
 # Programming Assignment #4
 # Author: Kai Pasciak
+# Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into command line
 
 # Import argparse module to enable command line flags
 import argparse
