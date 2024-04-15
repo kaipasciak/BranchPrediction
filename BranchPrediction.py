@@ -74,6 +74,7 @@ def main():
     # Open file to simulate running program
     with open(filename, "r") as file:
         correctPredictions = 0
+        numLines = 0
         for line in file:
             # Read address, update BHT based on branch taken value
             parts = line.split()
@@ -95,6 +96,7 @@ def main():
                 if (BHT[counterIndex] > MAX_COUNTER // 2):
                     prediction = True
 
+            # Update number of correct predictions
             if (prediction == True and branchTaken == 1):
                 correctPredictions += 1
 
@@ -108,7 +110,17 @@ def main():
             if (branchTaken == 0):
                 BHT[counterIndex] = min(BHT[counterIndex] - 1, MIN_COUNTER)
 
-        print(correctPredictions)
+            # Increment line counter
+            numLines += 1
+
+        # Calculate percentage
+        if numLines > 0:
+            percentage = (correctPredictions / numLines) * 100
+        else:
+            percentage = 0
+
+        print(correctPredictions, " out of ", numLines, " correctly predicted.")
+        print(f'Percentage = {percentage:.2f}')
 
 
 main()
