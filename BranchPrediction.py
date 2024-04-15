@@ -44,7 +44,8 @@ def arguments():
     bufferSize = int(args.bufferSizeFlag)
 
     # Represent buffer table size as number of counters rather than number of bits
-    bufferSize = int(bufferSize // counterBits)
+    if counterBits != 0:
+        bufferSize = int(bufferSize // counterBits)
 
     return [filename, counterBits, bufferSize]
 
@@ -56,6 +57,8 @@ def main():
     counterBits = flags[1]
     bufferSize = flags[2]
 
+    if counterBits == 0:
+        MAX_COUNTER = 0
     if counterBits == 1:
         MAX_COUNTER = 1
     if counterBits == 2:
@@ -86,8 +89,11 @@ def main():
 
             prediction = False
             # See if prediction was correct
-            if (BHT[counterIndex] > MAX_COUNTER // 2):
+            if counterBits == 0: # 0-bit case
                 prediction = True
+            else:
+                if (BHT[counterIndex] > MAX_COUNTER // 2):
+                    prediction = True
 
             if (prediction == True and branchTaken == 1):
                 correctPredictions += 1
