@@ -77,10 +77,11 @@ def main():
             branchTaken = int(parts[1])
 
             # Convert hex to binary
-            binAddress = bin(int(hexAddress, 16)).zfill(48) # For address size of 48 bits
+            address = int(hexAddress, 16) # For address size of 48 bits
 
-            # Convert bin to decimal
-            address = int(binAddress, 2)
+
+            # Calculate index in BHT
+            counterIndex = address % counterBits
 
 
 
