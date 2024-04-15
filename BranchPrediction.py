@@ -1,7 +1,7 @@
 # Branch Prediction Assignment
 # CS 3220
 # Programming Assignment #4
-# Author: Kai Pasciak
+# Author: Kai Pasciak, Walter Clay
 # Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into command line
 # -f filename = curl1m.btrace.out, gcc-100.btrace.out or java1m.btrace.out
 # -b counterBits = 0, 1, 2 or 3
