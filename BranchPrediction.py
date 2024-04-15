@@ -39,14 +39,13 @@ def arguments():
     # Direct assignment from parsed arguments
     filename = args.filename
     counterBits = args.counterBits
-    totalBPBSizeInBits = args.bufferSize
+    totalBHTSizeInBits = args.bufferSize
 
-    # Calculate number of counters in the BPB based on total size and counter bits
-    # For static prediction (0-bit), we assume a single "counter" for simplicity
+    # Calculate number of counters in the BHT based on total size and counter bits
     if counterBits > 0:
-        bufferSize = totalBPBSizeInBits // counterBits
+        bufferSize = totalBHTSizeInBits // counterBits
     else:
-        bufferSize = 1  # For static prediction, this simplifies logic
+        bufferSize = 1
 
     return [filename, counterBits, bufferSize]
 
