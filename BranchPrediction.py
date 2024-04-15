@@ -88,7 +88,10 @@ def main():
                     counterIndex = address % bufferSize
 
                     # Prediction logic
-                    prediction = (BHT[counterIndex] > (MAX_COUNTER // 2)) if counterBits > 0 else False  # Static prediction always False (not taken)
+                    if counterBits > 0:
+                        prediction = (BHT[counterIndex] > (MAX_COUNTER // 2))
+                    else:
+                        prediction = False
 
                     # Update correct predictions count
                     correctPredictions += (prediction == bool(branchTaken))
