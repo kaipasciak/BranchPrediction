@@ -1,11 +1,11 @@
 # Branch Prediction Assignment
 # CS 3220
 # Programming Assignment #4
-# Author: Kai Pasciak
-# Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into command line
-# -f filename = curl1m.btrace.out, gcc-100.btrace.out or java1m.btrace.out
-# -b counterBits = 0, 1, 2 or 3
-# -s bufferSize = any integer value
+# Author: Kai Pasciak, Walter Clay
+# Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into the command line
+# -f filename = curl1m.btrace.out, gcc-100.btrace.out, or java1m.btrace.out
+# -b counterBits = 0, 1, 2, or 3
+# -s bufferSize = total size of the BPB in bits
 
 # Import argparse module to enable command line flags
 import argparse
@@ -19,125 +19,91 @@ bufferSize = 0
 addresses = []
 counters = []
 
-
 def arguments():
     # Create instance of argparse
     parser = argparse.ArgumentParser(
         prog='BranchPrediction',
-        description='Read results of branch instructions and whether they were taken to simulate branch prediction',
+        description='Simulate branch prediction based on branch instruction outcomes',
         epilog='')
 
-    # Add flags
-    parser.add_argument('-f', '--filenameFlag')
-    parser.add_argument('-b', '--counterBitsFlag')
-    parser.add_argument('-s', '--bufferSizeFlag')
+    # Add flags with refined constraints and descriptions
+    parser.add_argument('-f', '--filename', required=True, help='Input trace file containing branch outcomes')
+    parser.add_argument('-b', '--counterBits', type=int, choices=[0, 1, 2, 3], required=True, help='Number of bits per counter (0, 1, 2, 3)')
+    parser.add_argument('-s', '--bufferSize', type=int, required=True, help='Total size of the Branch Prediction Buffer in bits')
 
     # Parse arguments
     args = parser.parse_args()
 
-    # Modify variables based on flags
-    filename = str(args.filenameFlag)
+    # Direct assignment from parsed arguments
+    filename = args.filename
+    counterBits = args.counterBits
+    totalBPBSizeInBits = args.bufferSize
 
-    # Ask for and validate number of bits per counter
-    counterBits = int(args.counterBitsFlag)
-    if counterBits < 0:
-        counterBits = 0
-
-    if counterBits > 3:
-        counterBits = 3
-
-    # Ask for branch-prediction buffer size
-    bufferSize = int(args.bufferSizeFlag)
-    # Default buffer size
-    if bufferSize < 0:
-        bufferSize = 512
-
-    # Represent buffer table size as number of counters rather than number of bits
-    if counterBits != 0:
-        bufferSize = int(bufferSize // counterBits)
+    # Calculate number of counters in the BPB based on total size and counter bits
+    # For static prediction (0-bit), we assume a single "counter" for simplicity
+    if counterBits > 0:
+        bufferSize = totalBPBSizeInBits // counterBits
+    else:
+        bufferSize = 1  # For static prediction, this simplifies logic
 
     return [filename, counterBits, bufferSize]
 
-
 def main():
+    global MAX_COUNTER, MIN_COUNTER
     print("Branch Prediction Simulator")
     flags = arguments()
-    filename = flags[0]
-    counterBits = flags[1]
-    bufferSize = flags[2]
+    filename, counterBits, bufferSize = flags
 
+    # Adjust MAX_COUNTER based on counterBits
     if counterBits == 0:
-        MAX_COUNTER = 0
-    if counterBits == 1:
+        MAX_COUNTER = 0  # Not used in static prediction, but initialized for consistency
+    elif counterBits == 1:
         MAX_COUNTER = 1
-    if counterBits == 2:
+    elif counterBits == 2:
         MAX_COUNTER = 3
-    if counterBits == 3:
+    elif counterBits == 3:
         MAX_COUNTER = 7
 
     print(f'Reading file {filename}')
-    print(f'Branch History Table Size: {bufferSize}')
+    print(f'Branch History Table Size (counters): {bufferSize}')
     print(f'Number of bits per entry: {counterBits}')
     print("--------------------------------")
 
-    # Create BHT, initialize all values to 0
-    BHT = []
-    for i in range(bufferSize):
-        BHT.append(0)
+    # Initialize BHT with zeros
+    BHT = [0] * bufferSize
 
-    # Open file to simulate running program
     try:
         with open(filename, "r") as file:
             correctPredictions = 0
             numLines = 0
             for line in file:
-                # Read address, update BHT based on branch taken value
-                parts = line.split()
-                hexAddress = str(parts[0])
-                branchTaken = int(parts[1])
+                hexAddress, branchTaken = line.split()
+                branchTaken = int(branchTaken)
+                address = int(hexAddress, 16)  # Convert hex address to integer
 
-                # Convert hex to binary
-                address = int(hexAddress, 16) # For address size of 48 bits
-
-
-                # Calculate index in BHT
+                # Calculate BHT index
                 counterIndex = address % bufferSize
 
-                prediction = False
-                # See if prediction was correct
-                if counterBits == 0: # 0-bit case
-                    prediction = True
-                else:
-                    if (BHT[counterIndex] > MAX_COUNTER // 2):
-                        prediction = True
+                # Prediction logic
+                prediction = (BHT[counterIndex] > (MAX_COUNTER // 2)) if counterBits > 0 else False  # Static prediction always False (not taken)
 
-                # Update number of correct predictions
-                if (prediction == True and branchTaken == 1):
-                    correctPredictions += 1
-
-                if (prediction == False and branchTaken == 0):
-                    correctPredictions += 1
-
+                # Update correct predictions count
+                correctPredictions += (prediction == bool(branchTaken))
 
                 # Update BHT
-                if (branchTaken == 1):
-                    BHT[counterIndex] = max(BHT[counterIndex] + 1, MAX_COUNTER)
-                if (branchTaken == 0):
-                    BHT[counterIndex] = min(BHT[counterIndex] - 1, MIN_COUNTER)
+                if branchTaken:
+                    BHT[counterIndex] = min(BHT[counterIndex] + 1, MAX_COUNTER)
+                else:
+                    BHT[counterIndex] = max(BHT[counterIndex] - 1, MIN_COUNTER)
 
-                # Increment line counter
                 numLines += 1
 
-            # Calculate percentage
-            if numLines > 0:
-                percentage = (correctPredictions / numLines) * 100
-            else:
-                percentage = 0
-
-            print(correctPredictions, " out of ", numLines, " correctly predicted.")
-            print(f'Percentage = {percentage:.2f}')
+            # Calculate and print prediction statistics
+            percentage = (correctPredictions / numLines) * 100 if numLines > 0 else 0
+            print(f'{correctPredictions} out of {numLines} correctly predicted.')
+            print(f'Percentage = {percentage:.2f}%')
     except FileNotFoundError:
         print("Specified File Not Found")
 
-
-main()
+if __name__ == "__main__":
+    main()
