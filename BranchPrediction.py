@@ -7,6 +7,8 @@
 # -b counterBits = 0, 1, 2, or 3
 # -s bufferSize = total size of the BPB in bits
 
+
+# added
 # Import argparse module to enable command line flags
 import argparse
 
