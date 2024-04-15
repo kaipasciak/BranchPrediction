@@ -70,6 +70,7 @@ def main():
 
     # Open file to simulate running program
     with open(filename, "r") as file:
+        correctPredictions = 0
         for line in file:
             # Read address, update BHT based on branch taken value
             parts = line.split()
@@ -81,11 +82,27 @@ def main():
 
 
             # Calculate index in BHT
-            counterIndex = address % counterBits
+            counterIndex = address % bufferSize
+
+            prediction = False
+            # See if prediction was correct
+            if (BHT[counterIndex] > MAX_COUNTER // 2):
+                prediction = True
+
+            if (prediction == True and branchTaken == 1):
+                correctPredictions += 1
+
+            if (prediction == False and branchTaken == 0):
+                correctPredictions += 1
 
 
+            # Update BHT
+            if (branchTaken == 1):
+                BHT[counterIndex] = max(BHT[counterIndex] + 1, MAX_COUNTER)
+            if (branchTaken == 0):
+                BHT[counterIndex] = min(BHT[counterIndex] - 1, MIN_COUNTER)
 
-            pass
+        print(correctPredictions)
 
 
 main()
