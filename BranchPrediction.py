@@ -3,6 +3,9 @@
 # Programming Assignment #4
 # Author: Kai Pasciak
 # Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into command line
+# -f filename = curl1m.btrace.out, gcc-100.btrace.out or java1m.btrace.out
+# -b counterBits = 0, 1, 2 or 3
+# -s bufferSize = any integer value
 
 # Import argparse module to enable command line flags
 import argparse
@@ -37,11 +40,17 @@ def arguments():
 
     # Ask for and validate number of bits per counter
     counterBits = int(args.counterBitsFlag)
-    if counterBits < 0 and counterBits > 3:
-        counterBits = int(input("Enter the number of bits to use: "))
+    if counterBits < 0:
+        counterBits = 0
+
+    if counterBits > 3:
+        counterBits = 3
 
     # Ask for branch-prediction buffer size
     bufferSize = int(args.bufferSizeFlag)
+    # Default buffer size
+    if bufferSize < 0:
+        bufferSize = 512
 
     # Represent buffer table size as number of counters rather than number of bits
     if counterBits != 0:
@@ -66,61 +75,69 @@ def main():
     if counterBits == 3:
         MAX_COUNTER = 7
 
+    print(f'Reading file {filename}')
+    print(f'Branch History Table Size: {bufferSize}')
+    print(f'Number of bits per entry: {counterBits}')
+    print("--------------------------------")
+
     # Create BHT, initialize all values to 0
     BHT = []
     for i in range(bufferSize):
         BHT.append(0)
 
     # Open file to simulate running program
-    with open(filename, "r") as file:
-        correctPredictions = 0
-        numLines = 0
-        for line in file:
-            # Read address, update BHT based on branch taken value
-            parts = line.split()
-            hexAddress = str(parts[0])
-            branchTaken = int(parts[1])
+    try:
+        with open(filename, "r") as file:
+            correctPredictions = 0
+            numLines = 0
+            for line in file:
+                # Read address, update BHT based on branch taken value
+                parts = line.split()
+                hexAddress = str(parts[0])
+                branchTaken = int(parts[1])
 
-            # Convert hex to binary
-            address = int(hexAddress, 16) # For address size of 48 bits
+                # Convert hex to binary
+                address = int(hexAddress, 16) # For address size of 48 bits
 
 
-            # Calculate index in BHT
-            counterIndex = address % bufferSize
+                # Calculate index in BHT
+                counterIndex = address % bufferSize
 
-            prediction = False
-            # See if prediction was correct
-            if counterBits == 0: # 0-bit case
-                prediction = True
-            else:
-                if (BHT[counterIndex] > MAX_COUNTER // 2):
+                prediction = False
+                # See if prediction was correct
+                if counterBits == 0: # 0-bit case
                     prediction = True
+                else:
+                    if (BHT[counterIndex] > MAX_COUNTER // 2):
+                        prediction = True
 
-            # Update number of correct predictions
-            if (prediction == True and branchTaken == 1):
-                correctPredictions += 1
+                # Update number of correct predictions
+                if (prediction == True and branchTaken == 1):
+                    correctPredictions += 1
 
-            if (prediction == False and branchTaken == 0):
-                correctPredictions += 1
+                if (prediction == False and branchTaken == 0):
+                    correctPredictions += 1
 
 
-            # Update BHT
-            if (branchTaken == 1):
-                BHT[counterIndex] = max(BHT[counterIndex] + 1, MAX_COUNTER)
-            if (branchTaken == 0):
-                BHT[counterIndex] = min(BHT[counterIndex] - 1, MIN_COUNTER)
+                # Update BHT
+                if (branchTaken == 1):
+                    BHT[counterIndex] = max(BHT[counterIndex] + 1, MAX_COUNTER)
+                if (branchTaken == 0):
+                    BHT[counterIndex] = min(BHT[counterIndex] - 1, MIN_COUNTER)
 
-            # Increment line counter
-            numLines += 1
+                # Increment line counter
+                numLines += 1
 
-        # Calculate percentage
-        if numLines > 0:
-            percentage = (correctPredictions / numLines) * 100
-        else:
-            percentage = 0
+            # Calculate percentage
+            if numLines > 0:
+                percentage = (correctPredictions / numLines) * 100
+            else:
+                percentage = 0
 
-        print(correctPredictions, " out of ", numLines, " correctly predicted.")
-        print(f'Percentage = {percentage:.2f}')
+            print(correctPredictions, " out of ", numLines, " correctly predicted.")
+            print(f'Percentage = {percentage:.2f}')
+    except FileNotFoundError:
+        print("Specified File Not Found")
 
 
 main()
