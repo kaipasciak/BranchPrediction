@@ -3,7 +3,7 @@
 # Programming Assignment #4
 # Author: Kai Pasciak, Walter Clay
 # Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into the command line
-# -f filename = curl1m.btrace.out, gcc-100.btrace.out, or java1m.btrace.out
+# -f filename = curl1m.btrace.out, gcc.btrace.out, or java1m.btrace.out
 # -b counterBits = 0, 1, 2, or 3
 # -s bufferSize = total size of the BPB in bits
 
@@ -79,26 +79,28 @@ def main():
             correctPredictions = 0
             numLines = 0
             for line in file:
-                hexAddress, branchTaken = line.split()
-                branchTaken = int(branchTaken)
-                address = int(hexAddress, 16)  # Convert hex address to integer
+                parts = line.split()
+                if len(parts) == 2:
+                    hexAddress, branchTaken = parts
+                    branchTaken = int(branchTaken)
+                    address = int(hexAddress, 16)  # Convert hex address to integer
 
-                # Calculate BHT index
-                counterIndex = address % bufferSize
+                    # Calculate BHT index
+                    counterIndex = address % bufferSize
 
-                # Prediction logic
-                prediction = (BHT[counterIndex] > (MAX_COUNTER // 2)) if counterBits > 0 else False  # Static prediction always False (not taken)
+                    # Prediction logic
+                    prediction = (BHT[counterIndex] > (MAX_COUNTER // 2)) if counterBits > 0 else False  # Static prediction always False (not taken)
 
-                # Update correct predictions count
-                correctPredictions += (prediction == bool(branchTaken))
+                    # Update correct predictions count
+                    correctPredictions += (prediction == bool(branchTaken))
 
-                # Update BHT
-                if branchTaken:
-                    BHT[counterIndex] = min(BHT[counterIndex] + 1, MAX_COUNTER)
-                else:
-                    BHT[counterIndex] = max(BHT[counterIndex] - 1, MIN_COUNTER)
+                    # Update BHT
+                    if branchTaken:
+                        BHT[counterIndex] = min(BHT[counterIndex] + 1, MAX_COUNTER)
+                    else:
+                        BHT[counterIndex] = max(BHT[counterIndex] - 1, MIN_COUNTER)
 
-                numLines += 1
+                    numLines += 1
 
             # Calculate and print prediction statistics
             percentage = (correctPredictions / numLines) * 100 if numLines > 0 else 0
