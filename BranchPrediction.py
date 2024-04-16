@@ -5,10 +5,8 @@
 # Example: Type "python3 BranchPrediction.py -f curl1m.btrace.out -b 2 -s 1000" into the command line
 # -f filename = curl1m.btrace.out, gcc.btrace.out, or java1m.btrace.out
 # -b counterBits = 0, 1, 2, or 3
-# -s bufferSize = total size of the BPB in bits
+# -s bufferSize = total size of the BHT in bits
 
-
-# added
 # Import argparse module to enable command line flags
 import argparse
 
@@ -28,7 +26,7 @@ def arguments():
         description='Simulate branch prediction based on branch instruction outcomes',
         epilog='')
 
-    # Add flags with refined constraints and descriptions
+    # Add flags with constraints, descriptions, etc.
     parser.add_argument('-f', '--filename', required=True, help='Input trace file containing branch outcomes')
     parser.add_argument('-b', '--counterBits', type=int, choices=[0, 1, 2, 3], required=True, help='Number of bits per counter (0, 1, 2, 3)')
     parser.add_argument('-s', '--bufferSize', type=int, required=True, help='Total size of the Branch Prediction Buffer in bits')
@@ -36,7 +34,7 @@ def arguments():
     # Parse arguments
     args = parser.parse_args()
 
-    # Direct assignment from parsed arguments
+    # Put arguments from command line into variables
     filename = args.filename
     counterBits = args.counterBits
     totalBHTSizeInBits = args.bufferSize
@@ -94,7 +92,8 @@ def main():
                         prediction = False
 
                     # Update correct predictions count
-                    correctPredictions += (prediction == bool(branchTaken))
+                    if prediction == bool(branchTaken):
+                        correctPredictions += 1
 
                     # Update BHT
                     if branchTaken:
